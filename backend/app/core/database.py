@@ -1,36 +1,33 @@
 # apps/backend/app/core/database.py
-import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# 1. Get the absolute path to the main 'apps/backend' folder
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from app.core.config import settings
 
-# 2. Explicitly load the .env file from that specific folder
-load_dotenv(os.path.join(BASE_DIR, ".env"))
+DATABASE_URL = settings.DATABASE_URL
 
-# 3. Read the URL from .env
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is missing.")
 
-# 4. CRITICAL FIX: If using a relative SQLite path in .env, convert it to absolute!
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("sqlite:///./"):
-    db_name = SQLALCHEMY_DATABASE_URL.replace("sqlite:///./", "")
-    db_path = os.path.join(BASE_DIR, db_name)
-    SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
-elif not SQLALCHEMY_DATABASE_URL:
-    # Fallback just in case the .env is missing
-    db_path = os.path.join(BASE_DIR, "local_portal.db")
-    SQLALCHEMY_DATABASE_URL = f"sqlite:///{db_path}"
+# SQLite requires check_same_thread=False
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
 
-# SQLite specifically needs the connect_args check to prevent threading errors in FastAPI
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    DATABASE_URL,
+    connect_args=connect_args,
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()

@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel, EmailStr
-import os
+from app.core.config import settings
 from typing import List, Optional
 from app.core.email import send_reset_email
 from app.core.database import get_db, Base, engine
@@ -50,7 +50,12 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
-app = FastAPI(title="Local SEO Growth Portal API")
+app = FastAPI(
+    title="Meridian Dynamics Client Portal API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 # ==========================================
 # CORS CONFIGURATION
@@ -58,9 +63,12 @@ app = FastAPI(title="Local SEO Growth Portal API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Client Portal
-        "http://localhost:3001"   # Admin Portal
-    ],
+    settings.FRONTEND_URL,
+    "https://admin.meridiandynamics.online",
+    "https://portal.meridiandynamics.online",
+    "http://localhost:3000",
+    "http://localhost:3001",
+],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -248,18 +256,6 @@ def update_user_profile(
         
     db.commit()
     return {"message": "Client profile updated successfully"}
-
-# ==========================================
-# TEMPORARY ADMIN PROMOTION ROUTE
-# ==========================================
-@app.get("/make-me-admin/{email}")
-def make_me_admin(email: str, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if user:
-        user.role = "admin"
-        db.commit()
-        return {"message": f"Success! {email} has been upgraded to an Admin."}
-    return {"error": f"User with email {email} not found. Please register first."}
 
 # ==========================================
 # ADMIN ROUTES: CONTENT CALENDAR & DELIVERABLES
