@@ -7,6 +7,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      const response = await fetch('http://127.0.0.1:8000/users/forgot-password', {
+      const response = await fetch(`${API_URL}/users/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

@@ -1,7 +1,14 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Path to the backend folder
+BASE_DIR = Path(__file__).resolve().parents[2]
+
+# Local SQLite database path
+LOCAL_DATABASE_URL = f"sqlite:///{(BASE_DIR / 'client_portal.db').as_posix()}"
 
 
 class Settings:
@@ -13,7 +20,9 @@ class Settings:
     )
 
     # Database
-    DATABASE_URL = os.getenv("DATABASE_URL")
+    # If DATABASE_URL exists in .env (Railway/Postgres), use it.
+    # Otherwise, use the SQLite database inside the backend folder.
+    DATABASE_URL = os.getenv("DATABASE_URL", LOCAL_DATABASE_URL)
 
     # Email
     SMTP_EMAIL = os.getenv("SMTP_EMAIL")

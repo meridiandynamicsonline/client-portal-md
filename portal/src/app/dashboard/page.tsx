@@ -7,6 +7,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -30,10 +31,10 @@ export default function DashboardPage() {
     const fetchClientData = async () => {
       try {
         const [profileRes, contentRes, delivRes, docRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/profiles/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/content/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/deliverables/me', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://127.0.0.1:8000/documents/me', { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${API_URL}/profiles/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_URL}/content/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_URL}/deliverables/me`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${API_URL}/documents/me`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         if (profileRes.status === 403) {
@@ -74,7 +75,7 @@ export default function DashboardPage() {
   const handleDownload = async (docId: number, docTitle: string) => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch(`http://127.0.0.1:8000/documents/${docId}/download`, {
+      const response = await fetch(`${API_URL}/documents/${docId}/download`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -166,7 +167,7 @@ export default function DashboardPage() {
         {/* Welcome Banner */}
         <div className="mb-6 sm:mb-8">
           <h2 className={`text-2xl sm:text-3xl font-bold text-slate-900 mb-2 ${playfair.className}`}>
-            Welcome back, Samarth Shukla
+            Welcome back
           </h2>
           <p className="text-sm sm:text-base text-slate-600">Here is the latest overview of your SEO campaigns and deliverables for {profile.company_name}.</p>
         </div>

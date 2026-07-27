@@ -5,6 +5,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 export default function AdminPortal() {
   const [users, setUsers] = useState<any[]>([]);
@@ -36,8 +37,11 @@ export default function AdminPortal() {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/admin/users', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await fetch(`${API_URL}/admin/users`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (response.ok) {
@@ -71,7 +75,7 @@ export default function AdminPortal() {
     if (!selectedUser) return;
     const token = localStorage.getItem('admin_token');
 
-    const response = await fetch(`http://127.0.0.1:8000/admin/users/${selectedUser.id}/profile`, {
+    const response = await fetch(`${API_URL}/admin/users/${selectedUser.id}/profile`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -93,7 +97,7 @@ export default function AdminPortal() {
     if (!selectedUser) return;
     const token = localStorage.getItem('admin_token');
 
-    const response = await fetch(`http://127.0.0.1:8000/admin/users/${selectedUser.id}/content`, {
+    const response = await fetch(`${API_URL}/admin/users/${selectedUser.id}/content`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -121,7 +125,7 @@ export default function AdminPortal() {
     if (!selectedUser) return;
     const token = localStorage.getItem('admin_token');
 
-    const response = await fetch(`http://127.0.0.1:8000/admin/users/${selectedUser.id}/deliverables`, {
+    const response = await fetch(`${API_URL}/admin/users/${selectedUser.id}/deliverables`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
