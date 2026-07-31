@@ -1,33 +1,27 @@
-# apps/backend/app/core/database.py
-
+import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
-from app.core.config import settings
+# 1. Fetch the database URL from the environment (Railway provides this automatically)
+# If it doesn't exist (like on your local computer), fallback to SQLite.
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./client_portal.db")
 
-DATABASE_URL = settings.DATABASE_URL
+# 2. Fix a common cloud provider quirk
+# Platforms like Railway often provide URLs starting with 'postgres://', 
+# but modern SQLAlchemy strictly requires 'postgresql://'. This safely patches it.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL environment variable is missing.")
-
-# SQLite requires check_same_thread=False
-connect_args = {}
+# 3. Configure the engine dynamically
+# SQLite needs a specific thread argument to work with FastAPI. PostgreSQL does not.
 if DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
 
-engine = create_engine(
-    DATABASE_URL,
-    connect_args=connect_args,
-)
-
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-)
-
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
-
 
 def get_db():
     db = SessionLocal()

@@ -15,9 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Admin Portal - Meridian Dynamics",
   description: "Admin Portal for Meridian Dynamics",
-  icons: {
-    icon: "/admin-svg.svg",
-  },
 };
 
 export default function RootLayout({

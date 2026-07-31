@@ -41,3 +41,16 @@ class DeliverableResponse(DeliverableBase):
 
     class Config:
         from_attributes = True
+
+# ==========================================
+# DOCUMENT VAULT SCHEMAS
+# ==========================================
+class DocumentResponse(BaseModel):
+    id: int
+    user_id: int
+    title: str
+    file_type: Optional[str] = None
+    uploaded_at: datetime
+
+    class Config:
+        from_attributes = True  # Note: Use `orm_mode = True` if you are on an older version of Pydantic

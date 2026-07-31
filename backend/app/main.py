@@ -1,5 +1,5 @@
 # apps/backend/app/main.py
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, UploadFile, File, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -10,6 +10,8 @@ from app.core.email import send_reset_email
 from app.core.database import get_db, Base, engine
 from app.schemas import schemas
 from app.models import models
+import os
+
 from app.core.security import (
     get_password_hash, 
     verify_password, 
@@ -331,3 +333,177 @@ def get_my_deliverables(
 ):
     """Client endpoint to view their own deliverables."""
     return db.query(models.Deliverable).filter(models.Deliverable.user_id == current_user_id).all()
+
+# ==========================================
+# ADMIN ROUTES: DELETE CONTENT & DELIVERABLES
+# ==========================================
+
+@app.delete("/admin/content/{item_id}")
+def delete_content_item(
+    item_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    db_item = db.query(models.ContentCalendar).filter(models.ContentCalendar.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Content item not found")
+        
+    db.delete(db_item)
+    db.commit()
+    return {"message": "Content item deleted successfully"}
+
+
+@app.delete("/admin/deliverables/{item_id}")
+def delete_deliverable(
+    item_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    db_item = db.query(models.Deliverable).filter(models.Deliverable.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Deliverable not found")
+        
+    db.delete(db_item)
+    db.commit()
+    return {"message": "Deliverable deleted successfully"}
+
+# ==========================================
+# ADMIN ROUTES: EDIT CONTENT & DELIVERABLES
+# ==========================================
+
+@app.put("/admin/content/{item_id}", response_model=schemas.ContentCalendarResponse)
+def update_content_item(
+    item_id: int,
+    item: schemas.ContentCalendarCreate,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to edit an existing content calendar item."""
+    db_item = db.query(models.ContentCalendar).filter(models.ContentCalendar.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Content item not found")
+    
+    # Update the item dynamically
+    for key, value in item.model_dump().items():
+        setattr(db_item, key, value)
+        
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+
+@app.put("/admin/deliverables/{item_id}", response_model=schemas.DeliverableResponse)
+def update_deliverable(
+    item_id: int,
+    item: schemas.DeliverableCreate,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to edit an existing deliverable."""
+    db_item = db.query(models.Deliverable).filter(models.Deliverable.id == item_id).first()
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Deliverable not found")
+    
+    # Update the item dynamically
+    for key, value in item.model_dump().items():
+        setattr(db_item, key, value)
+        
+    db.commit()
+    db.refresh(db_item)
+    return db_item
+
+
+# ==========================================
+# DOCUMENT VAULT ROUTES (POSTGRESQL STORAGE)
+# ==========================================
+
+@app.post("/admin/users/{user_id}/documents", response_model=schemas.DocumentResponse)
+async def upload_document(
+    user_id: int,
+    title: str = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to upload a document directly into the PostgreSQL database."""
+    
+    # Read the file directly into memory as bytes
+    file_content = await file.read()
+    
+    # Save the bytes in the database
+    db_document = models.Document(
+        user_id=user_id,
+        title=title,
+        file_data=file_content,
+        file_type=file.content_type or "application/octet-stream"
+    )
+    
+    db.add(db_document)
+    db.commit()
+    db.refresh(db_document)
+    return db_document
+
+
+@app.get("/admin/users/{user_id}/documents", response_model=list[schemas.DocumentResponse])
+def get_client_documents_admin(
+    user_id: int, 
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to list documents for a client."""
+    return db.query(models.Document).filter(models.Document.user_id == user_id).all()
+
+
+@app.get("/documents/me", response_model=list[schemas.DocumentResponse])
+def get_my_documents(
+    db: Session = Depends(get_db), 
+    current_user_id: int = Depends(get_current_user)
+):
+    """Client endpoint to list their own documents."""
+    return db.query(models.Document).filter(models.Document.user_id == current_user_id).all()
+
+
+@app.get("/documents/{doc_id}/download")
+def download_document(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    current_user_id: int = Depends(get_current_user)
+):
+    """Streams the file bytes directly from PostgreSQL to the client."""
+    document = db.query(models.Document).filter(models.Document.id == doc_id).first()
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+        
+    # Strict Authorization Check
+    if document.user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to access this document")
+        
+    # Format the filename safely
+    safe_title = document.title.replace(" ", "_")
+    
+    # Send the raw binary data back to the browser
+    return Response(
+        content=document.file_data,
+        media_type=document.file_type,
+        headers={"Content-Disposition": f'attachment; filename="{safe_title}.pdf"'}
+    )
+
+
+@app.delete("/admin/documents/{doc_id}")
+def delete_document(
+    doc_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to delete a document from the database."""
+    document = db.query(models.Document).filter(models.Document.id == doc_id).first()
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+            
+    # Deleting the database record automatically deletes the file data
+    db.delete(document)
+    db.commit()
+    
+    return {"message": "Document deleted successfully"}

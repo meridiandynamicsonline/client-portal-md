@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, LargeBinary
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -170,3 +170,13 @@ class Deliverable(Base):
         "User",
         back_populates="deliverables",
     )
+
+class Document(Base):
+    __tablename__ = "documents"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    title = Column(String)           
+    file_data = Column(LargeBinary)  # Stores the actual file bytes
+    file_type = Column(String)       # Stores the MIME type (e.g., application/pdf)
+    uploaded_at = Column(DateTime, default=datetime.utcnow)
