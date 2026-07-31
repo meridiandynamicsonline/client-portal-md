@@ -25,11 +25,11 @@ export default function AdminPortal() {
   // Form States - Profile
   const [companyName, setCompanyName] = useState('');
   const [industry, setIndustry] = useState('');
-  const [plan, setPlan] = useState('Pro Growth SEO');
+  const [plan, setPlan] = useState('Essential'); // Default Plan updated
 
   // Form States - Content Calendar
   const [contentTitle, setContentTitle] = useState('');
-  const [contentPlatform, setContentPlatform] = useState('LinkedIn');
+  const [contentPlatform, setContentPlatform] = useState('YouTube'); // Default Platform updated
   const [contentDate, setContentDate] = useState('');
   const [contentStatus, setContentStatus] = useState('Drafting');
 
@@ -102,7 +102,7 @@ export default function AdminPortal() {
     setSelectedUser(user);
     setCompanyName(user.profile?.company_name || '');
     setIndustry(user.profile?.industry || '');
-    setPlan(user.profile?.plan || 'Pro Growth SEO');
+    setPlan(user.profile?.plan || 'Essential'); // Updated fallback
     
     // Reset edit modes when switching users
     cancelContentEdit();
@@ -397,9 +397,14 @@ export default function AdminPortal() {
                   <div>
                     <label className="block text-xs font-bold text-slate-600 mb-1">Plan</label>
                     <select className="w-full rounded border border-slate-300 p-2 text-xs text-slate-900 bg-white" value={plan} onChange={(e) => setPlan(e.target.value)} required>
-                      <option value="Pro Growth SEO">Pro Growth SEO</option>
-                      <option value="Enterprise SEO">Enterprise SEO</option>
-                      <option value="Local SEO Starter">Local SEO Starter</option>
+                      <option value="Essential">Essential</option>
+                      <option value="Professional">Professional</option>
+                      <option value="Signature">Signature</option>
+                      <option value="Custom - Website">Custom - Website</option>
+                      <option value="Foundation">Foundation</option>
+                      <option value="Momentum">Momentum</option>
+                      <option value="Dominance">Dominance</option>
+                      <option value="Custom - Social">Custom - Social</option>
                     </select>
                   </div>
                   <button className="w-full rounded bg-blue-600 py-2.5 text-xs font-semibold text-white hover:bg-blue-700">Save Profile</button>
@@ -419,10 +424,14 @@ export default function AdminPortal() {
                       <div>
                         <label className="block text-xs font-bold text-slate-600 mb-1">Platform</label>
                         <select className="w-full rounded border border-slate-300 p-2 text-xs text-slate-900 bg-white" value={contentPlatform} onChange={(e) => setContentPlatform(e.target.value)}>
+                          <option value="YouTube">YouTube</option>
+                          <option value="Instagram">Instagram</option>
+                          <option value="TikTok">TikTok</option>
                           <option value="LinkedIn">LinkedIn</option>
-                          <option value="Blog">Blog</option>
-                          <option value="X">X (Twitter)</option>
+                          <option value="X (Twitter)">X (Twitter)</option>
+                          <option value="Facebook">Facebook</option>
                           <option value="Newsletter">Newsletter</option>
+                          <option value="Blog">Blog</option>
                         </select>
                       </div>
                       <div>
