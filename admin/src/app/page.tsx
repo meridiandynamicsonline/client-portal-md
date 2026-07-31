@@ -240,7 +240,6 @@ export default function AdminPortal() {
         setDocFile(null);
         fetchClientData(selectedUser.id);
       } else {
-        // This will popup the exact reason Google blocked it!
         const errorData = await response.json();
         alert(`Server Error: ${errorData.detail}`);
       }
@@ -249,7 +248,7 @@ export default function AdminPortal() {
     }
   };
 
-// --- DELETE HANDLER ---
+  // --- DELETE HANDLERS ---
   const handleDelete = async (type: 'content' | 'deliverables' | 'documents', itemId: number) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
     const token = localStorage.getItem('admin_token');
@@ -269,6 +268,39 @@ export default function AdminPortal() {
       }
     } catch (error) {
       console.error("Delete error", error);
+    }
+  };
+
+  // NEW: Delete User Account Handler
+  const handleDeleteClient = async (userId: number, email: string) => {
+    const isConfirmed = window.confirm(`Are you sure you want to permanently delete the account for ${email}? This will wipe all their vault files and history.`);
+    if (!isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("admin_token");
+      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // Remove the deleted client from the UI dynamically
+        setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+        alert("Client successfully deleted.");
+        
+        // If the deleted user was currently selected in the side panel, close it
+        if (selectedUser?.id === userId) {
+          setSelectedUser(null);
+        }
+      } else {
+        const data = await response.json();
+        alert(`Failed to delete client: ${data.detail}`);
+      }
+    } catch (error) {
+      console.error("Delete Error:", error);
+      alert("An error occurred while trying to delete the client.");
     }
   };
 
@@ -321,8 +353,9 @@ export default function AdminPortal() {
                       <span className={`inline-flex items-center rounded-md px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700'}`}>{user.role}</span>
                     </td>
                     <td className="px-6 py-4 text-slate-600">{user.profile?.company_name || '—'}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => handleSelectUser(user)} className="text-blue-600 font-semibold hover:text-blue-800">Manage</button>
+                    <td className="px-6 py-4 text-right whitespace-nowrap">
+                      <button onClick={() => handleSelectUser(user)} className="text-blue-600 font-semibold hover:text-blue-800 mr-4">Manage</button>
+                      <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-red-600 font-semibold hover:text-red-800">Delete</button>
                     </td>
                   </tr>
                 ))}
@@ -515,7 +548,6 @@ export default function AdminPortal() {
                             </div>
                           </div>
                           
-                          {/* NEW: Delete Button Added Here */}
                           <div className="flex shrink-0">
                             <button 
                               onClick={() => handleDelete('documents', doc.id)} 

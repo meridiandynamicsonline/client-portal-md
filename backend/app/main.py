@@ -259,6 +259,40 @@ def update_user_profile(
     db.commit()
     return {"message": "Client profile updated successfully"}
 
+@app.delete("/admin/users/{user_id}")
+def delete_user_account(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    """Admin endpoint to permanently delete a client account and all associated data."""
+    
+    # 1. Fetch the user to be deleted
+    target_user = db.query(models.User).filter(models.User.id == user_id).first()
+    
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    # 2. Safety Check: Prevent admins from deleting their own logged-in account
+    if target_user.id == admin.id:
+        raise HTTPException(
+            status_code=400, 
+            detail="Action denied: You cannot delete your own admin account."
+        )
+        
+    # 3. Delete all linked data first (prevents Foreign Key Constraint errors)
+    db.query(models.BusinessProfile).filter(models.BusinessProfile.user_id == user_id).delete()
+    db.query(models.Document).filter(models.Document.user_id == user_id).delete()
+    db.query(models.ContentCalendar).filter(models.ContentCalendar.user_id == user_id).delete()
+    db.query(models.Deliverable).filter(models.Deliverable.user_id == user_id).delete()
+    
+    # 4. Delete the user record
+    deleted_email = target_user.email
+    db.delete(target_user)
+    db.commit()
+    
+    return {"message": f"Account for {deleted_email} and all associated data deleted successfully."}
+
 # ==========================================
 # ADMIN ROUTES: CONTENT CALENDAR & DELIVERABLES
 # ==========================================
