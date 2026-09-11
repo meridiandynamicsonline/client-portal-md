@@ -62,10 +62,10 @@ app = FastAPI(
 # ==========================================
 # CORS CONFIGURATION
 # ==========================================
-app.add_middleware(
-    CORSMiddleware,
-    raw_origins = [
-    settings.FRONTEND_URL,
+raw_origins = [
+    getattr(settings,
+    "FRONTEND_URL",
+    "https://portal.meridiandynamics.online"),
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://portal.meridiandynamics.online",
@@ -84,7 +84,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
 )
 
 # ==========================================
