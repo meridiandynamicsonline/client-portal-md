@@ -64,16 +64,27 @@ app = FastAPI(
 # ==========================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    raw_origins = [
     settings.FRONTEND_URL,
-    "https://admin.meridiandynamics.online",
-    "https://portal.meridiandynamics.online",
     "http://localhost:3000",
-    "http://localhost:3001",
-],
+    "http://127.0.0.1:3000",
+    "https://portal.meridiandynamics.online",
+    "https://admin.meridiandynamics.online",
+    "https://meridiandynamics.online",
+    "https://client-portal-md.vercel.app",
+    "https://admin-portal-md.vercel.app",
+]
+
+# Strip trailing slashes and filter out empty strings/None
+origins = [origin.rstrip("/") for origin in raw_origins if origin]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
 )
 
 # ==========================================
