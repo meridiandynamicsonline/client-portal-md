@@ -8,22 +8,28 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   // New visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -47,12 +53,12 @@ export default function RegisterPage() {
   return (
     <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-[#fcf7f2] to-[#f3ebd9] px-4 ${inter.className}`}>
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/60 p-10 shadow-2xl backdrop-blur-md border border-white/40">
-        
+
         <div className="flex flex-col items-center text-center">
-          <Image 
-            src="/logo-md-squared(1).png" 
-            alt="Meridian Dynamics Logo" 
-            width={100} height={100} 
+          <Image
+            src="/logo-md-squared(1).png"
+            alt="Meridian Dynamics Logo"
+            width={100} height={100}
             className="mb-2 mix-blend-multiply" priority
           />
           <h1 className={`text-3xl font-bold tracking-tight text-slate-900 ${playfair.className}`}>
@@ -68,12 +74,12 @@ export default function RegisterPage() {
               type="email" placeholder="Email address"
               onChange={(e) => setEmail(e.target.value)} required
             />
-            
+
             {/* Password Field with Toggle */}
             <div className="relative">
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                type={showPassword ? "text" : "password"} 
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 onChange={(e) => setPassword(e.target.value)} required minLength={6}
               />
@@ -99,7 +105,7 @@ export default function RegisterPage() {
             <div className="relative">
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                type={showConfirmPassword ? "text" : "password"} 
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
                 onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6}
               />

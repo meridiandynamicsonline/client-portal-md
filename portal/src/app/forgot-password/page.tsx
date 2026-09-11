@@ -7,15 +7,21 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-const handleResetRequest = async (e: React.FormEvent) => {
+  const handleResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const response = await fetch(`${API_URL}/users/forgot-password`, {
         method: 'POST',
@@ -26,7 +32,7 @@ const handleResetRequest = async (e: React.FormEvent) => {
       // Whether it succeeds or fails, we show the success message 
       // to prevent bad actors from guessing valid emails
       setIsSubmitted(true);
-      
+
     } catch (error) {
       console.error("Failed to connect to the server", error);
       alert("Failed to connect to the backend server.");
@@ -36,12 +42,12 @@ const handleResetRequest = async (e: React.FormEvent) => {
   return (
     <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-[#fcf7f2] to-[#f3ebd9] px-4 ${inter.className}`}>
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/60 p-10 shadow-2xl backdrop-blur-md border border-white/40">
-        
+
         <div className="flex flex-col items-center text-center">
-          <Image 
-            src="/logo-md-squared(1).png" 
-            alt="Meridian Dynamics Logo" 
-            width={100} height={100} 
+          <Image
+            src="/logo-md-squared(1).png"
+            alt="Meridian Dynamics Logo"
+            width={100} height={100}
             className="mb-2 mix-blend-multiply" priority
           />
           <h1 className={`text-2xl font-bold tracking-tight text-slate-900 ${playfair.className}`}>

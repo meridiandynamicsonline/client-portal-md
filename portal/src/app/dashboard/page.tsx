@@ -7,8 +7,13 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-// Production Render URL as safe default:
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://client-portal-md.onrender.com";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -50,11 +55,11 @@ export default function DashboardPage() {
         if (profileRes.ok) {
           const profileData = await profileRes.json();
           setProfile(profileData);
-          
+
           if (contentRes.ok) setContent(await contentRes.json());
           if (delivRes.ok) setDeliverables(await delivRes.json());
           if (docRes.ok) setDocuments(await docRes.json());
-          
+
           setStatus('active');
         } else if (profileRes.status === 404) {
           // Client account created, but admin hasn't created a Profile entry yet
@@ -87,13 +92,13 @@ export default function DashboardPage() {
       const response = await fetch(`${API_URL}/documents/${docId}/download`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${docTitle.replace(/\s+/g, '_')}.pdf`; 
+        a.download = `${docTitle.replace(/\s+/g, '_')}.pdf`;
         document.body.appendChild(a);
         a.click();
         a.remove();
@@ -232,10 +237,9 @@ export default function DashboardPage() {
                           <p className="text-xs text-slate-500 mt-0.5 sm:mt-1">Due: {new Date(item.due_date).toLocaleDateString()}</p>
                         </div>
                       </div>
-                      <span className={`text-[10px] sm:text-xs font-medium px-2 py-1 rounded border ${
-                        item.status === 'Completed' ? 'bg-green-100/80 text-green-700 border-green-200/50' :
-                        item.status === 'In Progress' ? 'bg-blue-100/80 text-blue-700 border-blue-200/50' : 'bg-slate-100/80 text-slate-700 border-slate-200/50'
-                      }`}>
+                      <span className={`text-[10px] sm:text-xs font-medium px-2 py-1 rounded border ${item.status === 'Completed' ? 'bg-green-100/80 text-green-700 border-green-200/50' :
+                          item.status === 'In Progress' ? 'bg-blue-100/80 text-blue-700 border-blue-200/50' : 'bg-slate-100/80 text-slate-700 border-slate-200/50'
+                        }`}>
                         {item.status}
                       </span>
                     </div>
@@ -268,9 +272,8 @@ export default function DashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <span className={`text-[10px] sm:text-xs font-medium px-2 py-1 rounded border ${
-                        item.status === 'Published' ? 'bg-green-100/80 text-green-700 border-green-200/50' : 'bg-amber-100/80 text-amber-700 border-amber-200/50'
-                      }`}>
+                      <span className={`text-[10px] sm:text-xs font-medium px-2 py-1 rounded border ${item.status === 'Published' ? 'bg-green-100/80 text-green-700 border-green-200/50' : 'bg-amber-100/80 text-amber-700 border-amber-200/50'
+                        }`}>
                         {item.status}
                       </span>
                     </div>
@@ -303,7 +306,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-bold text-slate-900 line-clamp-2">{doc.title}</p>
                     <p className="text-xs text-slate-500 mt-1">Added {new Date(doc.uploaded_at).toLocaleDateString()}</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleDownload(doc.id, doc.title)}
                     className="w-full text-xs font-bold text-slate-700 hover:text-slate-900 bg-white/60 hover:bg-white border border-white/80 py-2.5 rounded-lg transition-all shadow-sm"
                   >

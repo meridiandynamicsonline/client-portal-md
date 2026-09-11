@@ -7,7 +7,13 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://client-portal-md.onrender.com";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -33,7 +39,7 @@ export default function LoginPage() {
         // Save both keys to prevent mismatches between admin and client dashboard checks
         localStorage.setItem('token', data.access_token);
         localStorage.setItem('admin_token', data.access_token);
-        
+
         // Use hard redirect to guarantee a fresh auth state read
         window.location.href = '/dashboard';
       } else {
@@ -51,15 +57,15 @@ export default function LoginPage() {
   return (
     <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-[#fcf7f2] to-[#f3ebd9] px-4 ${inter.className}`}>
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/60 p-10 shadow-2xl backdrop-blur-md border border-white/40">
-        
+
         {/* Brand Area */}
         <div className="flex flex-col items-center text-center">
-          <Image 
-            src="/logo-md-squared(1).png" 
-            alt="Meridian Dynamics Logo" 
-            width={100} 
-            height={100} 
-            className="mb-2 mix-blend-multiply" 
+          <Image
+            src="/logo-md-squared(1).png"
+            alt="Meridian Dynamics Logo"
+            width={100}
+            height={100}
+            className="mb-2 mix-blend-multiply"
             priority
           />
           <h1 className={`text-3xl font-bold tracking-tight text-slate-900 ${playfair.className}`}>
@@ -73,20 +79,20 @@ export default function LoginPage() {
           <div className="space-y-4">
             <input
               className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-              type="email" 
+              type="email"
               placeholder="Email address"
               value={email}
-              onChange={(e) => setEmail(e.target.value)} 
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
 
             <div className="relative">
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-                type={showPassword ? "text" : "password"} 
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)} 
+                onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <button
@@ -114,8 +120,8 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] disabled:opacity-50"
           >

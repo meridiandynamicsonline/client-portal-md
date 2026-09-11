@@ -7,7 +7,13 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -49,16 +55,16 @@ export default function AdminLogin() {
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 ${inter.className}`}>
       <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        
+
         {/* Header Section */}
         <div className="bg-slate-900 px-8 py-10 text-center">
           <div className="bg-white inline-block rounded p-1.5 mb-4">
-            <Image 
-              src="/logo-md-squared(1).png" 
-              alt="Logo" 
-              width={32} 
-              height={32} 
-              className="mix-blend-multiply" 
+            <Image
+              src="/logo-md-squared(1).png"
+              alt="Logo"
+              width={32}
+              height={32}
+              className="mix-blend-multiply"
             />
           </div>
           <h2 className={`text-2xl text-white tracking-wide ${playfair.className}`}>
@@ -134,7 +140,7 @@ export default function AdminLogin() {
           </form>
         </div>
       </div>
-      
+
       {/* Footer text */}
       <p className="text-slate-400 text-xs mt-8">
         &copy; {new Date().getFullYear()} Meridian Dynamics. Internal System.

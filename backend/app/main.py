@@ -63,9 +63,6 @@ app = FastAPI(
 # CORS CONFIGURATION
 # ==========================================
 raw_origins = [
-    getattr(settings,
-    "FRONTEND_URL",
-    "https://portal.meridiandynamics.online"),
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://portal.meridiandynamics.online",
@@ -75,7 +72,6 @@ raw_origins = [
     "https://admin-portal-md.vercel.app",
 ]
 
-# Strip trailing slashes and filter out empty strings/None
 origins = [origin.rstrip("/") for origin in raw_origins if origin]
 
 app.add_middleware(

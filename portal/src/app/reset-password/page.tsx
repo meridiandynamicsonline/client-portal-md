@@ -7,20 +7,26 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 function ResetPasswordForm() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Grab the ?token=... from the URL
   const token = searchParams.get('token');
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -49,12 +55,12 @@ function ResetPasswordForm() {
   return (
     <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-[#fcf7f2] to-[#f3ebd9] px-4 ${inter.className}`}>
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/60 p-10 shadow-2xl backdrop-blur-md border border-white/40">
-        
+
         <div className="flex flex-col items-center text-center">
-          <Image 
-            src="/logo-md-squared(1).png" 
-            alt="Meridian Dynamics Logo" 
-            width={100} height={100} 
+          <Image
+            src="/logo-md-squared(1).png"
+            alt="Meridian Dynamics Logo"
+            width={100} height={100}
             className="mb-2 mix-blend-multiply" priority
           />
           <h1 className={`text-3xl font-bold tracking-tight text-slate-900 ${playfair.className}`}>

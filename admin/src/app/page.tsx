@@ -5,7 +5,13 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Automatically resolves to http://127.0.0.1:8000 locally,
+// and https://client-portal-md.onrender.com in production builds
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === 'development'
+    ? 'http://127.0.0.1:8000'
+    : 'https://client-portal-md.onrender.com');
 
 export default function AdminPortal() {
   const [users, setUsers] = useState<any[]>([]);
@@ -75,7 +81,7 @@ export default function AdminPortal() {
   const fetchClientData = async (userId: number) => {
     const token = localStorage.getItem('admin_token');
     const headers = { 'Authorization': `Bearer ${token}` };
-    
+
     try {
       const [contentRes, delivRes, docRes] = await Promise.all([
         fetch(`${API_URL}/admin/users/${userId}/content`, { headers }),
@@ -103,11 +109,11 @@ export default function AdminPortal() {
     setCompanyName(user.profile?.company_name || '');
     setIndustry(user.profile?.industry || '');
     setPlan(user.profile?.plan || 'Essential'); // Updated fallback
-    
+
     // Reset edit modes when switching users
     cancelContentEdit();
     cancelDeliverableEdit();
-    
+
     fetchClientData(user.id);
   };
 
@@ -124,7 +130,7 @@ export default function AdminPortal() {
 
     if (response.ok) {
       alert("Client profile updated!");
-      fetchUsers(); 
+      fetchUsers();
     }
   };
 
@@ -133,9 +139,9 @@ export default function AdminPortal() {
     e.preventDefault();
     if (!selectedUser) return;
     const token = localStorage.getItem('admin_token');
-    
+
     const method = editingContentId ? 'PUT' : 'POST';
-    const url = editingContentId 
+    const url = editingContentId
       ? `${API_URL}/admin/content/${editingContentId}`
       : `${API_URL}/admin/users/${selectedUser.id}/content`;
 
@@ -180,7 +186,7 @@ export default function AdminPortal() {
     const token = localStorage.getItem('admin_token');
 
     const method = editingDeliverableId ? 'PUT' : 'POST';
-    const url = editingDeliverableId 
+    const url = editingDeliverableId
       ? `${API_URL}/admin/deliverables/${editingDeliverableId}`
       : `${API_URL}/admin/users/${selectedUser.id}/deliverables`;
 
@@ -231,7 +237,7 @@ export default function AdminPortal() {
       const response = await fetch(`${API_URL}/admin/users/${selectedUser.id}/documents`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
-        body: formData, 
+        body: formData,
       });
 
       if (response.ok) {
@@ -262,7 +268,7 @@ export default function AdminPortal() {
       if (response.ok) {
         if (type === 'content' && editingContentId === itemId) cancelContentEdit();
         if (type === 'deliverables' && editingDeliverableId === itemId) cancelDeliverableEdit();
-        fetchClientData(selectedUser.id); 
+        fetchClientData(selectedUser.id);
       } else {
         alert(`Failed to delete ${type} item.`);
       }
@@ -289,7 +295,7 @@ export default function AdminPortal() {
         // Remove the deleted client from the UI dynamically
         setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
         alert("Client successfully deleted.");
-        
+
         // If the deleted user was currently selected in the side panel, close it
         if (selectedUser?.id === userId) {
           setSelectedUser(null);
@@ -314,7 +320,7 @@ export default function AdminPortal() {
 
   return (
     <div className={`min-h-screen bg-slate-50 ${inter.className}`}>
-      
+
       {/* Header */}
       <header className="bg-slate-900 shadow-lg px-4 sm:px-8 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center space-x-3">
@@ -323,8 +329,8 @@ export default function AdminPortal() {
           </div>
           <h1 className={`text-xl font-bold text-white ${playfair.className}`}>Meridian Dynamics <span className="text-blue-400 text-sm tracking-widest uppercase ml-2">Admin</span></h1>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => {
             localStorage.removeItem('admin_token');
             window.location.href = '/login';
@@ -336,7 +342,7 @@ export default function AdminPortal() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Client Roster */}
         <div className="lg:col-span-2 space-y-6">
           <h2 className={`text-2xl font-bold text-slate-900 ${playfair.className}`}>Client Roster</h2>
@@ -372,9 +378,9 @@ export default function AdminPortal() {
                 <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">Manage Client</h3>
                 <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-slate-600 text-xs">Close</button>
               </div>
-              
+
               <p className="text-xs text-slate-500 mb-4">Target: <strong className="text-slate-900">{selectedUser.email}</strong></p>
-              
+
               {/* Tabs */}
               <div className="flex border-b border-slate-200 mb-4 text-xs font-semibold overflow-x-auto">
                 <button onClick={() => setActiveTab('profile')} className={`pb-2 mr-4 whitespace-nowrap ${activeTab === 'profile' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-slate-500'}`}>Profile</button>
@@ -556,10 +562,10 @@ export default function AdminPortal() {
                               <p className="text-[10px] text-slate-500">{new Date(doc.uploaded_at).toLocaleDateString()}</p>
                             </div>
                           </div>
-                          
+
                           <div className="flex shrink-0">
-                            <button 
-                              onClick={() => handleDelete('documents', doc.id)} 
+                            <button
+                              onClick={() => handleDelete('documents', doc.id)}
                               className="text-[10px] text-red-600 font-bold hover:bg-red-50 p-1.5 rounded transition-colors"
                             >
                               Delete
