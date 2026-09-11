@@ -5,39 +5,51 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Playfair_Display, Inter } from 'next/font/google';
 
-// Load the elegant serif font for the brand, and a clean sans font for the form
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://client-portal-md.onrender.com";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await fetch(`${API_URL}/users/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    setLoading(true);
 
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
-      router.push('/dashboard');
-    } else {
-      alert('Login failed. Please check your credentials.');
+    try {
+      console.log("Dispatching login to:", `${API_URL}/users/login`);
+      const response = await fetch(`${API_URL}/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // Save both keys to prevent mismatches between admin and client dashboard checks
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('admin_token', data.access_token);
+        
+        // Use hard redirect to guarantee a fresh auth state read
+        window.location.href = '/dashboard';
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(`Login failed: ${errorData.detail || 'Invalid email or password'}`);
+      }
+    } catch (err: any) {
+      console.error("Fetch failure:", err);
+      alert("Network error: Unable to reach backend server. Please check your connection or CORS settings.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    /* Background matching the warm cream of the logo */
     <div className={`flex min-h-screen items-center justify-center bg-gradient-to-br from-[#fcf7f2] to-[#f3ebd9] px-4 ${inter.className}`}>
-      
-      {/* Minimalist, subtle card design */}
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white/60 p-10 shadow-2xl backdrop-blur-md border border-white/40">
         
         {/* Brand Area */}
@@ -67,7 +79,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)} 
               required
             />
-            
+
             <div className="relative">
               <input
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
@@ -102,8 +114,12 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <button className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98]">
-            Sign In
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
