@@ -17,7 +17,6 @@ export const API_URL =
 export default function AdminPortal() {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  // Initialized to 'active' so the layout shell renders immediately
   const [status, setStatus] = useState<'loading' | 'active'>('active');
   const [activeTab, setActiveTab] = useState<'profile' | 'content' | 'deliverables' | 'vault'>('profile');
 
@@ -299,24 +298,25 @@ export default function AdminPortal() {
   return (
     <div className={`min-h-screen bg-[#fcfaf7] text-slate-900 ${inter.className}`}>
 
-      {/* Main Workspace */}
-      <main className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Responsive Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
 
         {/* Client Roster Panel */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-5">
           <div>
             <h2 className={`text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight ${playfair.className}`}>Client Roster</h2>
-            <p className="text-sm text-slate-500 mt-1">Select a client below to configure profiles, deliverables, and secure document vaults.</p>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">Select a client below to configure profiles, deliverables, and secure document vaults.</p>
           </div>
 
-          <div className="rounded-xl bg-white shadow-sm border border-slate-200/80 overflow-hidden">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/75 text-slate-500 uppercase text-[11px] tracking-wider font-semibold border-b border-slate-200">
+          {/* Table Container with Horizontal Scroll on Mobile */}
+          <div className="rounded-xl bg-white shadow-sm border border-slate-200/80 overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm min-w-[550px]">
+              <thead className="bg-slate-50/75 text-slate-500 uppercase text-[10px] sm:text-[11px] tracking-wider font-semibold border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4">Client Email</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4">Company</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-4 sm:px-6 py-3.5 sm:py-4">Client Email</th>
+                  <th className="px-4 sm:px-6 py-3.5 sm:py-4">Role</th>
+                  <th className="px-4 sm:px-6 py-3.5 sm:py-4">Company</th>
+                  <th className="px-4 sm:px-6 py-3.5 sm:py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -331,15 +331,15 @@ export default function AdminPortal() {
                     const isSelected = selectedUser?.id === user.id;
                     return (
                       <tr key={user.id} className={`transition-colors ${isSelected ? 'bg-slate-100/70' : 'hover:bg-slate-50/60'}`}>
-                        <td className="px-6 py-4 font-semibold text-slate-900">{user.email}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-slate-900 truncate max-w-[140px] sm:max-w-none">{user.email}</td>
+                        <td className="px-4 sm:px-6 py-3.5 sm:py-4">
                           <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
                             {user.role}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-600 font-medium">{user.profile?.company_name || '—'}</td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button onClick={() => handleSelectUser(user)} className="text-xs text-slate-900 font-bold hover:underline mr-4">Manage</button>
+                        <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-slate-600 font-medium">{user.profile?.company_name || '—'}</td>
+                        <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-right whitespace-nowrap">
+                          <button onClick={() => handleSelectUser(user)} className="text-xs text-slate-900 font-bold hover:underline mr-3 sm:mr-4">Manage</button>
                           <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-xs text-red-600 font-bold hover:text-red-800">Delete</button>
                         </td>
                       </tr>
@@ -352,15 +352,15 @@ export default function AdminPortal() {
         </div>
 
         {/* Action Sidebar */}
-        <div>
+        <div className="w-full">
           {selectedUser ? (
-            <div className="rounded-2xl bg-white p-6 shadow-xl border border-slate-200/80 sticky top-24 space-y-5">
+            <div className="rounded-2xl bg-white p-4 sm:p-6 shadow-xl border border-slate-200/80 sticky top-20 sm:top-24 space-y-4 sm:space-y-5">
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-                <div>
-                  <h3 className={`text-lg font-bold text-slate-900 ${playfair.className}`}>Manage Client</h3>
-                  <p className="text-xs text-slate-500 truncate max-w-[200px]">{selectedUser.email}</p>
+                <div className="overflow-hidden">
+                  <h3 className={`text-base sm:text-lg font-bold text-slate-900 ${playfair.className}`}>Manage Client</h3>
+                  <p className="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-[200px]">{selectedUser.email}</p>
                 </div>
-                <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-slate-700 text-xs font-semibold px-2 py-1 rounded bg-slate-100">Close</button>
+                <button onClick={() => setSelectedUser(null)} className="text-slate-400 hover:text-slate-700 text-xs font-semibold px-2.5 py-1 rounded bg-slate-100">Close</button>
               </div>
 
               {/* Sub-Navigation Tabs */}
@@ -378,18 +378,18 @@ export default function AdminPortal() {
 
               {/* Profile Management Tab */}
               {activeTab === 'profile' && (
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
+                <form onSubmit={handleUpdateProfile} className="space-y-3.5 sm:space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Company</label>
-                    <input className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
+                    <input className="w-full rounded-lg border border-slate-200 p-2 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" type="text" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Industry</label>
-                    <input className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" type="text" value={industry} onChange={(e) => setIndustry(e.target.value)} required />
+                    <input className="w-full rounded-lg border border-slate-200 p-2 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" type="text" value={industry} onChange={(e) => setIndustry(e.target.value)} required />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Plan</label>
-                    <select className="w-full rounded-lg border border-slate-200 p-2.5 text-xs text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" value={plan} onChange={(e) => setPlan(e.target.value)} required>
+                    <select className="w-full rounded-lg border border-slate-200 p-2 text-xs sm:text-sm text-slate-900 bg-white focus:outline-none focus:ring-1 focus:ring-slate-500" value={plan} onChange={(e) => setPlan(e.target.value)} required>
                       <option value="Essential">Essential</option>
                       <option value="Professional">Professional</option>
                       <option value="Signature">Signature</option>
@@ -406,14 +406,14 @@ export default function AdminPortal() {
 
               {/* Content Calendar Tab */}
               {activeTab === 'content' && (
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                   <form onSubmit={handleSubmitContent} className={`space-y-3 p-3.5 rounded-xl border ${editingContentId ? 'bg-slate-50 border-slate-300' : 'bg-slate-50/50 border-slate-200'}`}>
                     {editingContentId && <p className="text-xs font-bold text-slate-900 mb-1">Editing Calendar Entry...</p>}
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Post Title</label>
                       <input className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-900 bg-white" type="text" placeholder="e.g. Q3 SEO Strategy" value={contentTitle} onChange={(e) => setContentTitle(e.target.value)} required />
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Platform</label>
                         <select className="w-full rounded-lg border border-slate-200 p-2 text-xs text-slate-900 bg-white" value={contentPlatform} onChange={(e) => setContentPlatform(e.target.value)}>
@@ -473,7 +473,7 @@ export default function AdminPortal() {
 
               {/* Deliverables Tab */}
               {activeTab === 'deliverables' && (
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                   <form onSubmit={handleSubmitDeliverable} className={`space-y-3 p-3.5 rounded-xl border ${editingDeliverableId ? 'bg-slate-50 border-slate-300' : 'bg-slate-50/50 border-slate-200'}`}>
                     {editingDeliverableId && <p className="text-xs font-bold text-slate-900 mb-1">Editing Deliverable...</p>}
                     <div>
@@ -524,7 +524,7 @@ export default function AdminPortal() {
 
               {/* Secure Vault Tab */}
               {activeTab === 'vault' && (
-                <div className="space-y-5">
+                <div className="space-y-4 sm:space-y-5">
                   <form onSubmit={handleUploadDocument} className="space-y-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50/50">
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Document Title</label>
@@ -558,7 +558,7 @@ export default function AdminPortal() {
               )}
             </div>
           ) : (
-            <div className="rounded-2xl bg-white p-8 border border-slate-200/80 text-center flex items-center justify-center h-64 border-dashed sticky top-24 shadow-sm">
+            <div className="rounded-2xl bg-white p-6 sm:p-8 border border-slate-200/80 text-center flex items-center justify-center h-48 sm:h-64 border-dashed sticky top-20 sm:top-24 shadow-sm">
               <p className="text-slate-400 text-xs font-medium">Select a client from the roster to manage their profile and vault.</p>
             </div>
           )}

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
 import { Playfair_Display, Inter } from "next/font/google";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -40,11 +38,8 @@ export default function LeadsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
-
-  // New Lead Form State
+  
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", value: 0, notes: "" });
-
-  // New Event Inputs for Expanded Rows
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
 
@@ -142,11 +137,9 @@ export default function LeadsAdminPage() {
         fetchLeads();
       } else {
         const errorData = await res.json().catch(() => ({}));
-        console.error("Create Lead Error Response:", errorData);
         alert(`Failed to create lead: ${errorData.detail?.[0]?.msg || errorData.detail || "Server error"}`);
       }
     } catch (err) {
-      console.error("Network / Server Error:", err);
       alert("Could not reach backend server to create lead.");
     }
   };
@@ -163,26 +156,29 @@ export default function LeadsAdminPage() {
 
   return (
     <div className={`min-h-screen bg-[#fcfaf7] text-slate-900 ${inter.className}`}>
-      
-      {/* Main Container */}
-      <main className="p-8 max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
+      <main className="p-4 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        
+        {/* Responsive Header Action Bar */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className={`text-3xl font-bold ${playfair.className}`}>Lead Pipeline</h2>
-            <p className="text-sm text-slate-500 mt-1">Click any lead row to drop down scheduled events & follow-ups.</p>
+            <h2 className={`text-2xl sm:text-3xl font-bold ${playfair.className}`}>Lead Pipeline</h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">Click any lead row to drop down scheduled events & follow-ups.</p>
           </div>
-          <button onClick={() => setShowModal(true)} className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800">+ Add Lead</button>
+          <button onClick={() => setShowModal(true)} className="w-full sm:w-auto bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all shadow-sm">
+            + Add Lead
+          </button>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 border-b text-slate-500 text-[11px] uppercase font-semibold">
+        {/* Scrollable Table Container */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm min-w-[650px]">
+            <thead className="bg-slate-50 border-b text-slate-500 text-[10px] sm:text-[11px] uppercase font-semibold">
               <tr>
-                <th className="p-4 pl-6">Prospect</th>
-                <th className="p-4">Company</th>
-                <th className="p-4">Value</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 pr-6 text-right">Actions</th>
+                <th className="p-3.5 sm:p-4 pl-4 sm:pl-6">Prospect</th>
+                <th className="p-3.5 sm:p-4">Company</th>
+                <th className="p-3.5 sm:p-4">Value</th>
+                <th className="p-3.5 sm:p-4">Status</th>
+                <th className="p-3.5 sm:p-4 pr-4 sm:pr-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -195,35 +191,36 @@ export default function LeadsAdminPage() {
                 return (
                   <tr key={lead.id} className="group">
                     <td colSpan={5} className="p-0">
+                      
                       {/* Main Lead Row */}
-                      <div className="flex items-center justify-between p-4 pl-6 hover:bg-slate-50/80 cursor-pointer" onClick={() => toggleExpand(lead.id)}>
+                      <div className="flex items-center justify-between p-3.5 sm:p-4 pl-4 sm:pl-6 hover:bg-slate-50/80 cursor-pointer" onClick={() => toggleExpand(lead.id)}>
                         <div className="w-1/4">
-                          <p className="font-semibold text-slate-900 flex items-center gap-2">
-                            <span className="text-xs text-slate-400">{isExpanded ? "▼" : "▶"}</span>
-                            {lead.name}
+                          <p className="font-semibold text-slate-900 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                            <span className="text-[10px] sm:text-xs text-slate-400">{isExpanded ? "▼" : "▶"}</span>
+                            <span className="truncate">{lead.name}</span>
                           </p>
-                          <p className="text-xs text-slate-500 ml-5">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
+                          <p className="text-[11px] sm:text-xs text-slate-500 ml-4 sm:ml-5 truncate">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
                         </div>
-                        <div className="w-1/5 text-slate-700">{lead.company || "—"}</div>
+                        <div className="w-1/5 text-slate-700 truncate">{lead.company || "—"}</div>
                         <div className="w-1/6 font-semibold">₹{Number(lead.value || 0).toLocaleString('en-IN')}</div>
                         <div className="w-1/5" onClick={(e) => e.stopPropagation()}>
-                          <select value={lead.status} onChange={(e) => handleStatusChange(lead.id, e.target.value)} className="text-xs font-semibold px-2 py-1 rounded border bg-slate-50">
+                          <select value={lead.status} onChange={(e) => handleStatusChange(lead.id, e.target.value)} className="text-[11px] sm:text-xs font-semibold px-2 py-1 rounded border bg-slate-50 focus:outline-none">
                             {STATUS_OPTIONS.map((st) => <option key={st} value={st}>{st}</option>)}
                           </select>
                         </div>
-                        <div className="w-1/6 text-right pr-6" onClick={(e) => e.stopPropagation()}>
-                          <button onClick={() => handleDeleteLead(lead.id)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
+                        <div className="w-1/6 text-right pr-4 sm:pr-6" onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => handleDeleteLead(lead.id)} className="text-xs text-red-600 hover:text-red-800 font-semibold">Delete</button>
                         </div>
                       </div>
 
                       {/* Dropdown Event Panel */}
                       {isExpanded && (
-                        <div className="bg-slate-50/80 border-t border-b border-slate-200/80 p-6 pl-12 space-y-4">
-
-                          {/* Display Notes Section */}
+                        <div className="bg-slate-50/80 border-t border-b border-slate-200/80 p-4 sm:p-6 pl-6 sm:pl-12 space-y-4">
+                          
+                          {/* Prospect Notes */}
                           {lead.notes && (
                             <div className="bg-white p-3.5 rounded-lg border border-slate-200 max-w-2xl">
-                              <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                              <h4 className="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                                 Prospect Notes & Requirements
                               </h4>
                               <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
@@ -235,18 +232,18 @@ export default function LeadsAdminPage() {
                           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Scheduled Events & Milestones</h4>
 
                           {/* Add Event Form */}
-                          <form onSubmit={(e) => handleAddEvent(lead.id, e)} className="flex gap-3 items-center max-w-2xl">
+                          <form onSubmit={(e) => handleAddEvent(lead.id, e)} className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center max-w-2xl">
                             <input
                               type="text" placeholder="Event (e.g., Demo Call, Proposal Sent)"
-                              className="flex-1 text-xs border rounded-lg p-2 bg-white"
+                              className="flex-1 text-xs border rounded-lg p-2 bg-white focus:outline-none"
                               value={newEventTitle} onChange={(e) => setNewEventTitle(e.target.value)}
                             />
                             <input
                               type="datetime-local"
-                              className="text-xs border rounded-lg p-2 bg-white text-slate-700"
+                              className="text-xs border rounded-lg p-2 bg-white text-slate-700 focus:outline-none"
                               value={newEventDate} onChange={(e) => setNewEventDate(e.target.value)}
                             />
-                            <button type="submit" className="text-xs bg-slate-900 text-white px-3 py-2 rounded-lg font-semibold hover:bg-slate-800">
+                            <button type="submit" className="text-xs bg-slate-900 text-white px-3 py-2 rounded-lg font-semibold hover:bg-slate-800 transition-colors">
                               + Add Event
                             </button>
                           </form>
@@ -257,14 +254,14 @@ export default function LeadsAdminPage() {
                               <p className="text-xs text-slate-400 italic">No events scheduled for this lead yet.</p>
                             ) : (
                               lead.events.map((ev) => (
-                                <div key={ev.id} className="flex justify-between items-center bg-white p-3 rounded-lg border text-xs border-slate-200">
-                                  <div className="flex items-center gap-3">
-                                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                                <div key={ev.id} className="flex justify-between items-center bg-white p-2.5 sm:p-3 rounded-lg border text-xs border-slate-200">
+                                  <div className="flex items-center gap-2.5">
+                                    <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
                                     <span className="font-medium text-slate-800">{ev.title}</span>
                                   </div>
-                                  <div className="flex items-center gap-4">
-                                    <span className="text-slate-500 font-mono">{new Date(ev.event_date).toLocaleString('en-IN')}</span>
-                                    <button onClick={() => handleDeleteEvent(ev.id)} className="text-red-500 hover:text-red-700 font-bold">×</button>
+                                  <div className="flex items-center gap-3 sm:gap-4">
+                                    <span className="text-slate-500 font-mono text-[11px] sm:text-xs">{new Date(ev.event_date).toLocaleString('en-IN')}</span>
+                                    <button onClick={() => handleDeleteEvent(ev.id)} className="text-red-500 hover:text-red-700 font-bold px-1">×</button>
                                   </div>
                                 </div>
                               ))
@@ -283,62 +280,62 @@ export default function LeadsAdminPage() {
 
       {/* Modal Dialog */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-100">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-8 space-y-4 sm:space-y-5 shadow-2xl border border-slate-100 my-auto">
             <div>
-              <h3 className={`text-xl font-bold text-slate-900 ${playfair.className}`}>New Prospect</h3>
+              <h3 className={`text-lg sm:text-xl font-bold text-slate-900 ${playfair.className}`}>New Prospect</h3>
               <p className="text-xs text-slate-500 mt-1">Enter prospect details to track in your sales pipeline.</p>
             </div>
-            <form onSubmit={handleCreateLead} className="space-y-3.5">
+            <form onSubmit={handleCreateLead} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                   Contact Name
                 </label>
                 <input
                   type="text"
-                  placeholder="Name"
+                  placeholder="e.g. Rahul Sharma"
                   required
-                  className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                   Email Address
                 </label>
                 <input
                   type="email"
-                  placeholder="company@mail.in"
+                  placeholder="rahul@company.in"
                   required
-                  className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                     Phone
                   </label>
                   <input
                     type="text"
-                    placeholder="+91 1234567890"
-                    className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    placeholder="+91 98765 43210"
+                    className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                     Company
                   </label>
                   <input
                     type="text"
-                    placeholder="Company Name"
-                    className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    placeholder="Tata Consultancy Services"
+                    className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
                   />
@@ -346,42 +343,42 @@ export default function LeadsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                   Estimated Deal Value (₹)
                 </label>
                 <input
                   type="number"
                   placeholder="50000"
-                  className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.value || ""}
                   onChange={(e) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                <label className="block text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
                   Notes
                 </label>
                 <textarea
                   placeholder="Requirements, timeline, or meeting notes..."
-                  className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   rows={2}
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 />
               </div>
 
-              <div className="flex justify-end gap-2.5 pt-3">
+              <div className="flex justify-end gap-2.5 pt-2 sm:pt-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                  className="px-3.5 py-2 text-xs sm:text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all font-semibold shadow-sm active:scale-[0.98]"
+                  className="px-4 py-2 text-xs sm:text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-semibold shadow-sm"
                 >
                   Save Lead
                 </button>
