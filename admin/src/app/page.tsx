@@ -17,7 +17,8 @@ export const API_URL =
 export default function AdminPortal() {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
-  const [status, setStatus] = useState<'loading' | 'active'>('loading');
+  // Initialized to 'active' so the layout shell renders immediately
+  const [status, setStatus] = useState<'loading' | 'active'>('active');
   const [activeTab, setActiveTab] = useState<'profile' | 'content' | 'deliverables' | 'vault'>('profile');
 
   // Client Data States
@@ -64,7 +65,6 @@ export default function AdminPortal() {
 
       if (response.ok) {
         setUsers(await response.json());
-        setStatus('active');
       } else {
         localStorage.removeItem('admin_token');
         window.location.href = '/login';
@@ -296,14 +296,6 @@ export default function AdminPortal() {
     }
   };
 
-  if (status === 'loading') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fcfaf7]">
-        <p className={`text-slate-600 text-sm ${inter.className}`}>Verifying admin credentials...</p>
-      </div>
-    );
-  }
-
   return (
     <div className={`min-h-screen bg-[#fcfaf7] text-slate-900 ${inter.className}`}>
 
@@ -328,24 +320,32 @@ export default function AdminPortal() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {users.map((user) => {
-                  const isSelected = selectedUser?.id === user.id;
-                  return (
-                    <tr key={user.id} className={`transition-colors ${isSelected ? 'bg-slate-100/70' : 'hover:bg-slate-50/60'}`}>
-                      <td className="px-6 py-4 font-semibold text-slate-900">{user.email}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 font-medium">{user.profile?.company_name || '—'}</td>
-                      <td className="px-6 py-4 text-right whitespace-nowrap">
-                        <button onClick={() => handleSelectUser(user)} className="text-xs text-slate-900 font-bold hover:underline mr-4">Manage</button>
-                        <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-xs text-red-600 font-bold hover:text-red-800">Delete</button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-slate-400">
+                      Loading clients...
+                    </td>
+                  </tr>
+                ) : (
+                  users.map((user) => {
+                    const isSelected = selectedUser?.id === user.id;
+                    return (
+                      <tr key={user.id} className={`transition-colors ${isSelected ? 'bg-slate-100/70' : 'hover:bg-slate-50/60'}`}>
+                        <td className="px-6 py-4 font-semibold text-slate-900">{user.email}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-600 font-medium">{user.profile?.company_name || '—'}</td>
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <button onClick={() => handleSelectUser(user)} className="text-xs text-slate-900 font-bold hover:underline mr-4">Manage</button>
+                          <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-xs text-red-600 font-bold hover:text-red-800">Delete</button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
