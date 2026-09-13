@@ -53,12 +53,25 @@ class DocumentResponse(BaseModel):
     uploaded_at: datetime
 
     class Config:
-        from_attributes = True  # Note: Use `orm_mode = True` if you are on an older version of Pydantic
-        
+        from_attributes = True
+
 # ==========================================
 # LEAD MANAGEMENT SYSTEM SCHEMAS
 # ==========================================
-        
+class LeadEventCreate(BaseModel):
+    title: str
+    event_date: datetime
+
+class LeadEventResponse(BaseModel):
+    id: int
+    lead_id: int
+    title: str
+    event_date: datetime
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
 class LeadBase(BaseModel):
     name: str
     email: EmailStr
@@ -84,6 +97,7 @@ class LeadResponse(LeadBase):
     id: int
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+    events: List[LeadEventResponse] = []
 
     class Config:
         from_attributes = True

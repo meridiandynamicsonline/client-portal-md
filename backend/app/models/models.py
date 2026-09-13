@@ -195,3 +195,15 @@ class Lead(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
+    events = relationship("LeadEvent", back_populates="lead", cascade="all, delete-orphan")
+    
+class LeadEvent(Base):
+    __tablename__ = "lead_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lead_id = Column(Integer, ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    event_date = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    lead = relationship("Lead", back_populates="events")

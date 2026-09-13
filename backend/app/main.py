@@ -1,7 +1,7 @@
 # apps/backend/app/main.py
 from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, UploadFile, File, Form, Response
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import text
 from pydantic import BaseModel, EmailStr
 from app.core.config import settings
@@ -561,7 +561,7 @@ def list_leads(
     db: Session = Depends(get_db),
     admin: models.User = Depends(get_current_admin)
 ):
-    query = db.query(models.Lead)
+    query = db.query(models.Lead).options(joinedload(models.Lead.events))
     if status:
         query = query.filter(models.Lead.status == status)
     return query.order_by(models.Lead.created_at.desc()).all()
@@ -613,3 +613,36 @@ def delete_lead(
     db.delete(lead)
     db.commit()
     return {"message": "Lead deleted successfully"}
+
+
+@app.post("/admin/leads/{lead_id}/events", response_model=schemas.LeadEventResponse)
+def add_lead_event(
+    lead_id: int,
+    event_data: schemas.LeadEventCreate,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    db_event = models.LeadEvent(**event_data.model_dump(), lead_id=lead_id)
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
+
+@app.delete("/admin/events/{event_id}")
+def delete_lead_event(
+    event_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    event = db.query(models.LeadEvent).filter(models.LeadEvent.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+
+    db.delete(event)
+    db.commit()
+    return {"message": "Event deleted successfully"}
