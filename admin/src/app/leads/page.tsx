@@ -293,7 +293,7 @@ export default function LeadsAdminPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder="Name"
                   required
                   className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.name}
@@ -307,7 +307,7 @@ export default function LeadsAdminPage() {
                 </label>
                 <input
                   type="email"
-                  placeholder="rahul@company.in"
+                  placeholder="company@mail.com"
                   required
                   className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.email}
@@ -322,7 +322,7 @@ export default function LeadsAdminPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="+91 98765 43210"
+                    placeholder="+91 12345 67890"
                     className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -334,7 +334,7 @@ export default function LeadsAdminPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Tata Consultancy Services"
+                    placeholder="Company Name"
                     className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
@@ -348,7 +348,7 @@ export default function LeadsAdminPage() {
                 </label>
                 <input
                   type="number"
-                  placeholder="50000"
+                  placeholder="xxxxxx"
                   className="w-full border border-slate-200 rounded-lg p-2 sm:p-2.5 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.value || ""}
                   onChange={(e) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })}
