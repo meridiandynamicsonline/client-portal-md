@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Playfair_Display, Inter } from 'next/font/google';
@@ -13,7 +14,7 @@ export const API_URL =
     ? 'http://127.0.0.1:8000'
     : 'https://client-portal-md.onrender.com');
 
-    //test commit
+//test commit
 export default function AdminPortal() {
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -323,20 +324,43 @@ export default function AdminPortal() {
     <div className={`min-h-screen bg-slate-50 ${inter.className}`}>
 
       {/* Header */}
-      <header className="bg-slate-900 shadow-lg px-4 sm:px-8 py-4 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center space-x-3">
-          <div className="bg-white rounded p-1">
-            <Image src="/logo-md-squared(1).png" alt="Logo" width={28} height={28} className="mix-blend-multiply" />
+      <header className="bg-slate-900 shadow-lg px-4 sm:px-8 py-3.5 flex justify-between items-center sticky top-0 z-10 border-b border-slate-800">
+        {/* Left: Brand + Navigation */}
+        <div className="flex items-center space-x-8">
+          <div className="flex items-center space-x-3">
+            <div className="bg-white rounded p-1 shadow-sm">
+              <Image src="/logo-md-squared(1).png" alt="Logo" width={26} height={26} className="mix-blend-multiply" />
+            </div>
+            <h1 className={`text-lg font-bold text-white tracking-wide ${playfair.className}`}>
+              Meridian Dynamics <span className="text-blue-400 text-xs tracking-widest uppercase font-sans font-semibold ml-1.5 px-1.5 py-0.5 bg-blue-950/60 rounded border border-blue-800/60">Admin</span>
+            </h1>
           </div>
-          <h1 className={`text-xl font-bold text-white ${playfair.className}`}>Meridian Dynamics <span className="text-blue-400 text-sm tracking-widest uppercase ml-2">Admin</span></h1>
+
+          {/* Tab Navigation Links */}
+          <nav className="flex items-center space-x-1">
+            <Link
+              href="/"
+              className="text-xs font-semibold text-white bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700 shadow-sm"
+            >
+              Clients
+            </Link>
+            <Link
+              href="/leads"
+              className="text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 px-3 py-1.5 rounded-md transition-all"
+            >
+              Leads
+            </Link>
+          </nav>
         </div>
 
+        {/* Right: Sign Out */}
         <button
           onClick={() => {
             localStorage.removeItem('admin_token');
+            localStorage.removeItem('token');
             window.location.href = '/login';
           }}
-          className="text-xs font-medium text-slate-300 hover:text-white bg-slate-800 px-3 py-1.5 rounded border border-slate-700 transition-colors"
+          className="text-xs font-medium text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 px-3 py-1.5 rounded-md border border-slate-700/80 transition-colors"
         >
           Sign Out
         </button>

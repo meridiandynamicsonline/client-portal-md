@@ -2,8 +2,9 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, LargeBinary
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, LargeBinary, Text, Numeric, func
 from sqlalchemy.orm import relationship
+from app.core.database import Base
 
 from app.core.database import Base
 
@@ -180,3 +181,17 @@ class Document(Base):
     file_data = Column(LargeBinary)  # Stores the actual file bytes
     file_type = Column(String)       # Stores the MIME type (e.g., application/pdf)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
+    
+class Lead(Base):
+    __tablename__ = "leads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False)
+    phone = Column(String(50), nullable=True)
+    company = Column(String(255), nullable=True)
+    status = Column(String(50), default="New")
+    value = Column(Numeric(10, 2), default=0.0)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())

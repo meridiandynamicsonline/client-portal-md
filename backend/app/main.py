@@ -63,8 +63,11 @@ app = FastAPI(
 # CORS CONFIGURATION
 # ==========================================
 raw_origins = [
+    getattr(settings, "FRONTEND_URL", "https://portal.meridiandynamics.online"),
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "https://portal.meridiandynamics.online",
     "https://admin.meridiandynamics.online",
     "https://meridiandynamics.online",
@@ -547,3 +550,66 @@ def delete_document(
     db.commit()
     
     return {"message": "Document deleted successfully"}
+
+# ==========================================
+# ADMIN ROUTES: LEAD MANAGEMENT SYSTEM
+# ==========================================
+
+@app.get("/admin/leads", response_model=List[schemas.LeadResponse])
+def list_leads(
+    status: Optional[str] = None,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    query = db.query(models.Lead)
+    if status:
+        query = query.filter(models.Lead.status == status)
+    return query.order_by(models.Lead.created_at.desc()).all()
+
+
+@app.post("/admin/leads", response_model=schemas.LeadResponse, status_code=201)
+def create_lead(
+    lead_data: schemas.LeadCreate,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    new_lead = models.Lead(**lead_data.model_dump())
+    db.add(new_lead)
+    db.commit()
+    db.refresh(new_lead)
+    return new_lead
+
+
+@app.put("/admin/leads/{lead_id}", response_model=schemas.LeadResponse)
+def update_lead(
+    lead_id: int,
+    lead_update: schemas.LeadUpdate,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    update_dict = lead_update.model_dump(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(lead, key, value)
+
+    db.commit()
+    db.refresh(lead)
+    return lead
+
+
+@app.delete("/admin/leads/{lead_id}")
+def delete_lead(
+    lead_id: int,
+    db: Session = Depends(get_db),
+    admin: models.User = Depends(get_current_admin)
+):
+    lead = db.query(models.Lead).filter(models.Lead.id == lead_id).first()
+    if not lead:
+        raise HTTPException(status_code=404, detail="Lead not found")
+
+    db.delete(lead)
+    db.commit()
+    return {"message": "Lead deleted successfully"}

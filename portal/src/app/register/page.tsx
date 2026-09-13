@@ -8,8 +8,7 @@ import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-// Automatically resolves to http://127.0.0.1:8000 locally,
-// and https://client-portal-md.onrender.com in production builds
+
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development'
@@ -20,8 +19,9 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // New visibility states
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -29,24 +29,39 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
 
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    const response = await fetch(`${API_URL}/users/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    setLoading(true);
 
-    if (response.ok) {
-      alert('Account created successfully! Please log in.');
-      router.push('/login');
-    } else {
-      const errorData = await response.json();
-      alert(`Registration failed: ${errorData.detail}`);
+    try {
+      const endpoint = `${API_URL.replace(/\/$/, '')}/users/register`;
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        alert('Account created successfully! Please log in.');
+        router.push('/login');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        const detail = errorData.detail || 'Registration failed. Please check your credentials.';
+        setErrorMessage(detail);
+        alert(`Registration failed: ${detail}`);
+      }
+    } catch (err: any) {
+      console.error('Fetch registration error:', err);
+      setErrorMessage(`Unable to reach server at ${API_URL}. Is your backend running?`);
+      alert(`Connection failed: Check if local backend is active at ${API_URL}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,12 +82,21 @@ export default function RegisterPage() {
           <p className="mt-2 text-sm text-slate-600 font-medium">Create your client portal account</p>
         </div>
 
+        {errorMessage && (
+          <div className="p-3 text-sm text-red-700 bg-red-100/80 border border-red-200 rounded-lg">
+            {errorMessage}
+          </div>
+        )}
+
         <form onSubmit={handleRegister} className="mt-8 space-y-6">
           <div className="space-y-4">
             <input
               className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-              type="email" placeholder="Email address"
-              onChange={(e) => setEmail(e.target.value)} required
+              type="email" 
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)} 
+              required
             />
 
             {/* Password Field with Toggle */}
@@ -81,7 +105,10 @@ export default function RegisterPage() {
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                onChange={(e) => setPassword(e.target.value)} required minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
+                required 
+                minLength={6}
               />
               <button
                 type="button"
@@ -107,7 +134,10 @@ export default function RegisterPage() {
                 className="w-full rounded-lg border border-slate-200 bg-white/80 p-3 pr-10 text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm Password"
-                onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)} 
+                required 
+                minLength={6}
               />
               <button
                 type="button"
@@ -128,8 +158,12 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <button className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98]">
-            Create Account
+          <button 
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-slate-900 py-3 font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 

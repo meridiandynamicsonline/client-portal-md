@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime
 from typing import Optional, List
 
@@ -54,3 +54,36 @@ class DocumentResponse(BaseModel):
 
     class Config:
         from_attributes = True  # Note: Use `orm_mode = True` if you are on an older version of Pydantic
+        
+# ==========================================
+# LEAD MANAGEMENT SYSTEM SCHEMAS
+# ==========================================
+        
+class LeadBase(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    status: Optional[str] = "New"
+    value: Optional[float] = 0.0
+    notes: Optional[str] = None
+
+class LeadCreate(LeadBase):
+    pass
+
+class LeadUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    status: Optional[str] = None
+    value: Optional[float] = None
+    notes: Optional[str] = None
+
+class LeadResponse(LeadBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
