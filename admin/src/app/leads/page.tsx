@@ -40,10 +40,10 @@ export default function LeadsAdminPage() {
   const [loading, setLoading] = useState(true);
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
-  
+
   // New Lead Form State
   const [form, setForm] = useState({ name: "", email: "", phone: "", company: "", value: 0, notes: "" });
-  
+
   // New Event Inputs for Expanded Rows
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
@@ -223,7 +223,7 @@ export default function LeadsAdminPage() {
                           <p className="text-xs text-slate-500 ml-5">{lead.email} {lead.phone && `• ${lead.phone}`}</p>
                         </div>
                         <div className="w-1/5 text-slate-700">{lead.company || "—"}</div>
-                        <div className="w-1/6 font-semibold">${Number(lead.value || 0).toLocaleString()}</div>
+                        <div className="w-1/6 font-semibold">₹{Number(lead.value || 0).toLocaleString('en-IN')}</div>
                         <div className="w-1/5" onClick={(e) => e.stopPropagation()}>
                           <select value={lead.status} onChange={(e) => handleStatusChange(lead.id, e.target.value)} className="text-xs font-semibold px-2 py-1 rounded border bg-slate-50">
                             {STATUS_OPTIONS.map((st) => <option key={st} value={st}>{st}</option>)}
@@ -237,6 +237,19 @@ export default function LeadsAdminPage() {
                       {/* Dropdown Event Panel */}
                       {isExpanded && (
                         <div className="bg-slate-50/80 border-t border-b border-slate-200/80 p-6 pl-12 space-y-4">
+
+                          {/* Display Notes Section */}
+                          {lead.notes && (
+                            <div className="bg-white p-3.5 rounded-lg border border-slate-200 max-w-2xl">
+                              <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                Prospect Notes & Requirements
+                              </h4>
+                              <p className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed">
+                                {lead.notes}
+                              </p>
+                            </div>
+                          )}
+
                           <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Scheduled Events & Milestones</h4>
 
                           {/* Add Event Form */}
@@ -268,7 +281,7 @@ export default function LeadsAdminPage() {
                                     <span className="font-medium text-slate-800">{ev.title}</span>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                    <span className="text-slate-500 font-mono">{new Date(ev.event_date).toLocaleString()}</span>
+                                    <span className="text-slate-500 font-mono">{new Date(ev.event_date).toLocaleString('en-IN')}</span>
                                     <button onClick={() => handleDeleteEvent(ev.id)} className="text-red-500 hover:text-red-700 font-bold">×</button>
                                   </div>
                                 </div>
@@ -301,7 +314,7 @@ export default function LeadsAdminPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Jane Doe"
+                  placeholder="Name"
                   required
                   className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.name}
@@ -315,7 +328,7 @@ export default function LeadsAdminPage() {
                 </label>
                 <input
                   type="email"
-                  placeholder="jane@company.com"
+                  placeholder="company@mail.in"
                   required
                   className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.email}
@@ -330,7 +343,7 @@ export default function LeadsAdminPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+91 1234567890"
                     className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -342,7 +355,7 @@ export default function LeadsAdminPage() {
                   </label>
                   <input
                     type="text"
-                    placeholder="Acme Corp"
+                    placeholder="Company Name"
                     className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
@@ -352,11 +365,11 @@ export default function LeadsAdminPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                  Estimated Deal Value ($)
+                  Estimated Deal Value (₹)
                 </label>
                 <input
                   type="number"
-                  placeholder="5000"
+                  placeholder="50000"
                   className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   value={form.value || ""}
                   onChange={(e) => setForm({ ...form, value: parseFloat(e.target.value) || 0 })}
@@ -368,7 +381,7 @@ export default function LeadsAdminPage() {
                   Notes
                 </label>
                 <textarea
-                  placeholder="Goals, timeline, or notes..."
+                  placeholder="Requirements, timeline, or meeting notes..."
                   className="w-full border border-slate-200 rounded-lg p-2.5 text-sm text-slate-800 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
                   rows={2}
                   value={form.notes}
