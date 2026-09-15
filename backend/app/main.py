@@ -288,14 +288,21 @@ def delete_user_account(
             status_code=400, 
             detail="Action denied: You cannot delete your own admin account."
         )
+
+    # 3. Role Check: Prevent admins from deleting ANY admin account
+    if target_user.role == "admin":
+        raise HTTPException(
+            status_code=403, 
+            detail="Action denied: Admin accounts cannot be deleted."
+        )
         
-    # 3. Delete all linked data first (prevents Foreign Key Constraint errors)
+    # 4. Delete all linked data first (prevents Foreign Key Constraint errors)
     db.query(models.BusinessProfile).filter(models.BusinessProfile.user_id == user_id).delete()
     db.query(models.Document).filter(models.Document.user_id == user_id).delete()
     db.query(models.ContentCalendar).filter(models.ContentCalendar.user_id == user_id).delete()
     db.query(models.Deliverable).filter(models.Deliverable.user_id == user_id).delete()
     
-    # 4. Delete the user record
+    # 5. Delete the user record
     deleted_email = target_user.email
     db.delete(target_user)
     db.commit()

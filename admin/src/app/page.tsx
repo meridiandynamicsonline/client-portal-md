@@ -329,18 +329,35 @@ export default function AdminPortal() {
                 ) : (
                   users.map((user) => {
                     const isSelected = selectedUser?.id === user.id;
+                    const isAdmin = user.role === 'admin';
+
                     return (
                       <tr key={user.id} className={`transition-colors ${isSelected ? 'bg-slate-100/70' : 'hover:bg-slate-50/60'}`}>
                         <td className="px-4 sm:px-6 py-3.5 sm:py-4 font-semibold text-slate-900 truncate max-w-[140px] sm:max-w-none">{user.email}</td>
                         <td className="px-4 sm:px-6 py-3.5 sm:py-4">
-                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                          <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${isAdmin ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
                             {user.role}
                           </span>
                         </td>
                         <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-slate-600 font-medium">{user.profile?.company_name || '—'}</td>
                         <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-right whitespace-nowrap">
+                          {!isAdmin ? (
                           <button onClick={() => handleSelectUser(user)} className="text-xs text-slate-900 font-bold hover:underline mr-3 sm:mr-4">Manage</button>
-                          <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-xs text-red-600 font-bold hover:text-red-800">Delete</button>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-medium italic select-none">
+                              Action
+                            </span>
+                          )}
+                          {/* Render Delete button for non-admin accounts, or a Protected badge for admins */}
+                          {!isAdmin ? (
+                            <button onClick={() => handleDeleteClient(user.id, user.email)} className="text-xs text-red-600 font-bold hover:text-red-800">
+                              Delete
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-medium italic select-none">
+                              Disabled
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );
