@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Playfair_Display, Inter } from "next/font/google";
 
 const playfair = Playfair_Display({ subsets: ["latin"] });
@@ -33,10 +34,39 @@ interface Lead {
 
 const STATUS_OPTIONS = ["New", "Contacted", "Qualified", "Proposal Sent", "Won", "Lost"];
 
+// Inline Spinner Component
+function ButtonSpinner() {
+  return (
+    <svg className="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 text-current inline-block" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
+
+// Full Table Component Loader
+function TableLoader({ text = "Loading pipeline entries..." }: { text?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center p-8 space-y-3">
+      <div className="relative flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-2 border-slate-200 border-t-slate-900 animate-spin" />
+        <div className="absolute animate-pulse">
+          <Image src="/logo-md-squared(1).png" alt="Loading" width={20} height={20} className="mix-blend-multiply" />
+        </div>
+      </div>
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{text}</p>
+    </div>
+  );
+}
+
 export default function LeadsAdminPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false); // Prevents duplicate submissions
+  const [submitting, setSubmitting] = useState(false); 
+  const [addingEvent, setAddingEvent] = useState(false);
+  const [deletingLeadId, setDeletingLeadId] = useState<number | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
+
   const [expandedLeadId, setExpandedLeadId] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -79,30 +109,46 @@ export default function LeadsAdminPage() {
   const handleAddEvent = async (leadId: number, e: React.FormEvent) => {
     e.preventDefault();
     if (!newEventTitle || !newEventDate) return alert("Please fill in event title and date.");
+    if (addingEvent) return;
 
+    setAddingEvent(true);
     const token = getAuthToken();
-    const res = await fetch(`${API_URL}/admin/leads/${leadId}/events`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ title: newEventTitle, event_date: new Date(newEventDate).toISOString() }),
-    });
+    
+    try {
+      const res = await fetch(`${API_URL}/admin/leads/${leadId}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title: newEventTitle, event_date: new Date(newEventDate).toISOString() }),
+      });
 
-    if (res.ok) {
-      setNewEventTitle("");
-      setNewEventDate("");
-      fetchLeads();
-    } else {
-      alert("Failed to add event");
+      if (res.ok) {
+        setNewEventTitle("");
+        setNewEventDate("");
+        await fetchLeads();
+      } else {
+        alert("Failed to add event");
+      }
+    } catch (err) {
+      alert("Error adding event to server.");
+    } finally {
+      setAddingEvent(false);
     }
   };
 
   const handleDeleteEvent = async (eventId: number) => {
+    if (deletingEventId) return;
+    setDeletingEventId(eventId);
     const token = getAuthToken();
-    const res = await fetch(`${API_URL}/admin/events/${eventId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) fetchLeads();
+    
+    try {
+      const res = await fetch(`${API_URL}/admin/events/${eventId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) await fetchLeads();
+    } finally {
+      setDeletingEventId(null);
+    }
   };
 
   const handleStatusChange = async (leadId: number, nextStatus: string) => {
@@ -117,7 +163,7 @@ export default function LeadsAdminPage() {
 
   const handleCreateLead = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return; // Prevent secondary triggers while initial request is pending
+    if (submitting) return;
 
     setSubmitting(true);
     const token = getAuthToken();
@@ -152,19 +198,31 @@ export default function LeadsAdminPage() {
 
   const handleDeleteLead = async (leadId: number) => {
     if (!confirm("Delete lead and associated events?")) return;
+    if (deletingLeadId) return;
+
+    setDeletingLeadId(leadId);
     const token = getAuthToken();
-    await fetch(`${API_URL}/admin/leads/${leadId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setLeads(leads.filter((l) => l.id !== leadId));
+    
+    try {
+      const res = await fetch(`${API_URL}/admin/leads/${leadId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setLeads(leads.filter((l) => l.id !== leadId));
+      } else {
+        alert("Failed to delete lead.");
+      }
+    } finally {
+      setDeletingLeadId(null);
+    }
   };
 
   return (
     <div className={`min-h-screen bg-[#fcfaf7] text-slate-900 ${inter.className}`}>
       <main className="p-4 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
-        {/* Responsive Header Action Bar */}
+        {/* Header Action Bar */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className={`text-2xl sm:text-3xl font-bold ${playfair.className}`}>Lead Pipeline</h2>
@@ -178,7 +236,7 @@ export default function LeadsAdminPage() {
           </button>
         </div>
 
-        {/* Table Wrapper for Horizontal Scroll on Mobile */}
+        {/* Scrollable Table Container */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm min-w-[650px]">
             <thead className="bg-slate-50 border-b text-slate-500 text-[10px] sm:text-[11px] uppercase font-semibold">
@@ -192,12 +250,18 @@ export default function LeadsAdminPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {loading ? (
-                <tr><td colSpan={5} className="p-8 text-center text-slate-400">Loading pipeline...</td></tr>
+                <tr>
+                  <td colSpan={5} className="p-4">
+                    <TableLoader text="Fetching sales pipeline..." />
+                  </td>
+                </tr>
               ) : leads.length === 0 ? (
                 <tr><td colSpan={5} className="p-8 text-center text-slate-400">No leads found. Click "+ Add Lead" to get started.</td></tr>
               ) : (
                 leads.map((lead) => {
                   const isExpanded = expandedLeadId === lead.id;
+                  const isDeletingThis = deletingLeadId === lead.id;
+
                   return (
                     <React.Fragment key={lead.id}>
                       {/* Main Lead Row */}
@@ -226,7 +290,14 @@ export default function LeadsAdminPage() {
                           </select>
                         </td>
                         <td className="p-3.5 sm:p-4 pr-4 sm:pr-6 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <button onClick={() => handleDeleteLead(lead.id)} className="text-xs text-red-600 hover:text-red-800 font-semibold">Delete</button>
+                          <button 
+                            disabled={isDeletingThis}
+                            onClick={() => handleDeleteLead(lead.id)} 
+                            className="text-xs text-red-600 hover:text-red-800 font-semibold disabled:opacity-50"
+                          >
+                            {isDeletingThis ? <ButtonSpinner /> : null}
+                            {isDeletingThis ? "Deleting..." : "Delete"}
+                          </button>
                         </td>
                       </tr>
 
@@ -254,18 +325,25 @@ export default function LeadsAdminPage() {
                               <input
                                 type="text" 
                                 placeholder="Event (e.g., Demo Call, Proposal Sent)"
-                                className="flex-1 text-xs border border-slate-200 rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                disabled={addingEvent}
+                                className="flex-1 text-xs border border-slate-200 rounded-lg p-2.5 bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 disabled:opacity-60"
                                 value={newEventTitle} 
                                 onChange={(e) => setNewEventTitle(e.target.value)}
                               />
                               <input
                                 type="datetime-local"
-                                className="text-xs border border-slate-200 rounded-lg p-2.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                                disabled={addingEvent}
+                                className="text-xs border border-slate-200 rounded-lg p-2.5 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-400 disabled:opacity-60"
                                 value={newEventDate} 
                                 onChange={(e) => setNewEventDate(e.target.value)}
                               />
-                              <button type="submit" className="text-xs bg-slate-900 text-white px-3.5 py-2.5 rounded-lg font-semibold hover:bg-slate-800 transition-colors shrink-0">
-                                + Add Event
+                              <button 
+                                type="submit" 
+                                disabled={addingEvent}
+                                className="text-xs bg-slate-900 text-white px-3.5 py-2.5 rounded-lg font-semibold hover:bg-slate-800 transition-colors shrink-0 disabled:opacity-50"
+                              >
+                                {addingEvent && <ButtonSpinner />}
+                                {addingEvent ? "Adding..." : "+ Add Event"}
                               </button>
                             </form>
 
@@ -282,7 +360,13 @@ export default function LeadsAdminPage() {
                                     </div>
                                     <div className="flex items-center gap-3 sm:gap-4">
                                       <span className="text-slate-500 font-mono text-[11px] sm:text-xs">{new Date(ev.event_date).toLocaleString('en-IN')}</span>
-                                      <button onClick={() => handleDeleteEvent(ev.id)} className="text-red-500 hover:text-red-700 font-bold px-1">×</button>
+                                      <button 
+                                        disabled={deletingEventId === ev.id}
+                                        onClick={() => handleDeleteEvent(ev.id)} 
+                                        className="text-red-500 hover:text-red-700 font-bold px-1 disabled:opacity-50"
+                                      >
+                                        {deletingEventId === ev.id ? "…" : "×"}
+                                      </button>
                                     </div>
                                   </div>
                                 ))
@@ -410,6 +494,7 @@ export default function LeadsAdminPage() {
                   disabled={submitting}
                   className="px-4 py-2 text-xs sm:text-sm bg-slate-900 text-white rounded-lg hover:bg-slate-800 font-semibold shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
+                  {submitting && <ButtonSpinner />}
                   {submitting ? "Saving Lead..." : "Save Lead"}
                 </button>
               </div>
