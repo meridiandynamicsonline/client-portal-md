@@ -1,22 +1,28 @@
-// apps/admin/src/app/login/page.tsx
-
-//test commit
-
 "use client";
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Playfair_Display, Inter } from 'next/font/google';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
-// Automatically resolves to http://127.0.0.1:8000 locally,
-// and https://client-portal-md.onrender.com in production builds
+
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development'
     ? 'http://127.0.0.1:8000'
     : 'https://client-portal-md.onrender.com');
+
+// Inline Button Spinner Component
+function ButtonSpinner() {
+  return (
+    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current inline-block" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+    </svg>
+  );
+}
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -24,10 +30,23 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
+
+  // Safeguard: Hide global navbar elements when on login page
+  useEffect(() => {
+    const navbar = document.querySelector('nav');
+    if (navbar) navbar.style.display = 'none';
+
+    return () => {
+      if (navbar) navbar.style.display = '';
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || isRedirecting) return;
+
     setError('');
     setIsLoading(true);
 
@@ -41,22 +60,46 @@ export default function AdminLogin() {
       const data = await response.json();
 
       if (response.ok) {
-        // Save the JWT token to the browser
         localStorage.setItem('admin_token', data.access_token);
-        // Hard redirect to clear any cached states
+        // Activate full-screen overlay to hide layout elements during redirect
+        setIsRedirecting(true);
         window.location.href = '/';
       } else {
         setError(data.detail || 'Authentication failed.');
+        setIsLoading(false);
       }
     } catch (err) {
       setError('Unable to connect to the server.');
-    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 ${inter.className}`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center bg-[#fcfaf7] px-4 ${inter.className}`}>
+      
+      {/* Fullscreen Transition Overlay - Covers entire screen including Navbar */}
+      {(isLoading || isRedirecting) && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#fcfaf7] transition-all">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
+              <div className="absolute animate-pulse">
+                <Image
+                  src="/logo-md-squared(1).png"
+                  alt="Loading..."
+                  width={32}
+                  height={32}
+                  className="mix-blend-multiply"
+                />
+              </div>
+            </div>
+            <p className="text-xs font-bold text-slate-800 uppercase tracking-widest animate-pulse">
+              {isRedirecting ? "Authenticating & Redirecting..." : "Verifying Credentials..."}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
 
         {/* Header Section */}
@@ -71,7 +114,7 @@ export default function AdminLogin() {
             />
           </div>
           <h2 className={`text-2xl text-white tracking-wide ${playfair.className}`}>
-            Meridian Dynamics <br></br> <span className="font-bold">Admin Panel</span>
+            Meridian Dynamics <br /> <span className="font-bold">Admin Panel</span>
           </h2>
           <p className="text-slate-400 text-xs uppercase tracking-widest mt-2 font-semibold">
             Authorized Personnel Only
@@ -94,9 +137,10 @@ export default function AdminLogin() {
               <input
                 type="email"
                 required
+                disabled={isLoading || isRedirecting}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-slate-900 focus:border-slate-900 block p-3 outline-none transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-slate-900 focus:border-slate-900 block p-3 outline-none transition-colors disabled:opacity-60"
                 placeholder="name@meridiandynamics.com"
               />
             </div>
@@ -109,15 +153,17 @@ export default function AdminLogin() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  disabled={isLoading || isRedirecting}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-slate-900 focus:border-slate-900 block p-3 pr-10 outline-none transition-colors"
+                  className="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-slate-900 focus:border-slate-900 block p-3 pr-10 outline-none transition-colors disabled:opacity-60"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
+                  disabled={isLoading || isRedirecting}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none disabled:opacity-50"
                 >
                   {showPassword ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -135,9 +181,10 @@ export default function AdminLogin() {
 
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full text-white bg-slate-900 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-3.5 text-center mt-4 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={isLoading || isRedirecting}
+              className="w-full text-white bg-slate-900 hover:bg-slate-800 focus:ring-4 focus:outline-none focus:ring-slate-300 font-medium rounded-lg text-sm px-5 py-3.5 text-center mt-4 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
             >
+              {isLoading && <ButtonSpinner />}
               {isLoading ? 'Authenticating...' : 'Access Dashboard'}
             </button>
           </form>
