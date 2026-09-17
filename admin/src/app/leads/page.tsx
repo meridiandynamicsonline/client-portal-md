@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState, Suspense } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Playfair_Display, Inter } from "next/font/google";
 
@@ -56,6 +56,71 @@ function TableLoader({ text = "Loading pipeline entries..." }: { text?: string }
       </div>
       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{text}</p>
     </div>
+  );
+}
+
+// Fullscreen Route Transition Overlay Inner Component (Cream Theme, No Box)
+function FullScreenLoaderContent() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [navigating, setNavigating] = useState(false);
+
+  useEffect(() => {
+    setNavigating(false);
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.currentTarget as HTMLAnchorElement;
+      if (
+        target.href &&
+        target.href.startsWith(window.location.origin) &&
+        target.pathname !== pathname
+      ) {
+        setNavigating(true);
+      }
+    };
+
+    const links = document.querySelectorAll("a");
+    links.forEach((link) => link.addEventListener("click", handleAnchorClick));
+
+    return () => {
+      links.forEach((link) => link.removeEventListener("click", handleAnchorClick));
+    };
+  }, [pathname]);
+
+  if (!navigating) return null;
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#fcfaf7] transition-all">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="relative flex items-center justify-center">
+          {/* Animated Spinner with slate border top */}
+          <div className="w-14 h-14 rounded-full border-4 border-slate-200 border-t-slate-900 animate-spin" />
+          <div className="absolute animate-pulse">
+            <Image
+              src="/logo-md-squared(1).png"
+              alt="Loading..."
+              width={28}
+              height={28}
+              className="mix-blend-multiply"
+            />
+          </div>
+        </div>
+        <p className="text-xs font-bold text-slate-800 uppercase tracking-widest animate-pulse">
+          Loading...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// Fullscreen Loader Wrapper with Suspense
+function FullScreenLoader() {
+  return (
+    <Suspense fallback={null}>
+      <FullScreenLoaderContent />
+    </Suspense>
   );
 }
 
@@ -220,6 +285,9 @@ export default function LeadsAdminPage() {
 
   return (
     <div className={`min-h-screen bg-[#fcfaf7] text-slate-900 ${inter.className}`}>
+      {/* Fullscreen Route Transition Overlay */}
+      <FullScreenLoader />
+
       <main className="p-4 sm:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
 
         {/* Header Action Bar */}
