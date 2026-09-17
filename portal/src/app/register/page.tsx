@@ -77,7 +77,7 @@ export default function RegisterPage() {
             className="mb-2 mix-blend-multiply" priority
           />
           <h1 className={`text-3xl font-bold tracking-tight text-slate-900 ${playfair.className}`}>
-            Join Meridian
+            Meridian Dynamics
           </h1>
           <p className="mt-2 text-sm text-slate-600 font-medium">Create your client portal account</p>
         </div>
