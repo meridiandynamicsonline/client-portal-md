@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Playfair_Display, Inter } from 'next/font/google';
+import { ComponentLoader } from '@/components/Loader';
 
 const playfair = Playfair_Display({ subsets: ['latin'] });
 const inter = Inter({ subsets: ['latin'] });
@@ -114,7 +115,7 @@ export default function DashboardPage() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fcf7f2]">
-        <p className={`text-slate-600 ${inter.className}`}>Loading your portal...</p>
+        <ComponentLoader text="Loading your portal..." />
       </div>
     );
   }
